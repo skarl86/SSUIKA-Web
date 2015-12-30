@@ -10,15 +10,13 @@ import java.util.ArrayList;
 /**
  * Created by NCri on 2015. 12. 29..
  */
-public class AutoCompleteListProtocol {
+public class AutoCompleteListProtocol extends IKAProtocol{
     public final static int SEQUENTAIL = 0;
     public final static int CONTAIN = 1;
 
     public static JSONObject getCompleteRuleList(String inputText, int flag){
-        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObject = getDefaultJSON();
         ArrayList<Atom> list = SQLManager.getAutoCompleteList(inputText, flag);
-        jsonObject.put("rt_msg", "");
-        jsonObject.put("rt_code", "0");
         JSONArray atomList = new JSONArray();
         JSONObject atom = null;
         for(Atom atm : list ){

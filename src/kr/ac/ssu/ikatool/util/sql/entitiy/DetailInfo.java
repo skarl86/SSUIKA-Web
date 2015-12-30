@@ -23,6 +23,9 @@ public class DetailInfo {
      * @param strValue
      */
     public DetailInfo(Integer id, Integer testItemCode, Integer subCode, String testItemName, Float numValue, String strValue) {
+        if(testItemName == null) testItemName = "";
+        if(strValue == null) strValue = "";
+
         this.id = id;
         this.testItemCode = testItemCode;
         this.subCode = subCode;
@@ -52,6 +55,8 @@ public class DetailInfo {
         if(list == null)
             list = new ArrayList<TestItem>();
 
+        if(testItemName == null) testItemName = "";
+        if(strValue == null) strValue = "";
         list.add(new TestItem(subCode, testItemName, numValue, strValue));
         this.map.put(testItemCode, list);
     }

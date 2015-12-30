@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="ssuika">
+    <output-path>$PROJECT_DIR$/out/artifacts/ssuika</output-path>
+    <root id="archive" name="ssuika.war">
+      <element id="artifact" artifact-name="SSUIKA-Web:war exploded" />
+    </root>
+  </artifact>
+</component>

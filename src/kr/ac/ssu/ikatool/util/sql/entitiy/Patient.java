@@ -14,6 +14,11 @@ public class Patient {
     private ArrayList<Opinion> opinionList;
 
     public Patient(String id, String name, String age, String sex, DetailInfo detailInfo, ArrayList<Opinion> opinionList) {
+        if(id == null) id = "";
+        if(name == null) name = "";
+        if(age == null) age = "";
+        if(sex == null) sex = "";
+
         this.id = id;
         this.name = name;
         this.age = age;

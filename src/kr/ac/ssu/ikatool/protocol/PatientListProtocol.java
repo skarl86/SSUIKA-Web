@@ -13,10 +13,10 @@ import java.util.Set;
 /**
  * Created by NCri on 2015. 12. 23..
  */
-public class PatientListProtocol {
+public class PatientListProtocol extends IKAProtocol{
     public static JSONObject getPatientList(String patientID){
         Patient pat = SQLManager.getPatientList(patientID);
-        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObject = getDefaultJSON("patientInfo","0");
         JSONArray opinionList = new JSONArray();
         for(Opinion opn : pat.getOpinionList()){
             JSONObject obj = new JSONObject();
@@ -24,8 +24,6 @@ public class PatientListProtocol {
             obj.put("opinionString", opn.getOpinionContents());
             opinionList.add(obj);
         }
-        jsonObject.put("rt_msg","patientInfo");
-        jsonObject.put("rt_code", "0");
         jsonObject.put("id", patientID);
         jsonObject.put("name", pat.getName());
         jsonObject.put("age", new Integer(pat.getAge()));
