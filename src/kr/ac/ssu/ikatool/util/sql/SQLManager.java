@@ -243,28 +243,15 @@ public class SQLManager {
         boolean isAssociateAntecedent = false;
         boolean isAssociateConsequent = false;
         Rule rule = null;
-        for(Integer key : ruleMap.keySet()){
 
-            isAssociateAntecedent = true;
-            isAssociateConsequent = true;
+        for(Integer key : ruleMap.keySet()){
 
             rule = ruleMap.get(key);
 
-            if(rule != null){
-                for(Integer atomID : antAtomIDList){
-                    for(Atom exAtom : rule.getAntecedents()){
-                        isAssociateAntecedent &= exAtom.getId() == atomID;
-                    }
-                }
+            isAssociateAntecedent = rule.getAntecedentAtomIDs().containsAll(antAtomIDList);
+            isAssociateConsequent = rule.getAntecedentAtomIDs().containsAll(consAtomIDList);
 
-                for(Integer atomID : consAtomIDList){
-                    for(Atom exAtom : rule.getConseqeunts()){
-                        isAssociateConsequent &= exAtom.getId() == atomID;
-                    }
-                }
-
-                if(isAssociateAntecedent | isAssociateConsequent) associateRuleSet.add(rule);
-            }
+            if(isAssociateAntecedent | isAssociateConsequent) associateRuleSet.add(rule);
         }
 
         return associateRuleSet;

@@ -39,6 +39,22 @@ public class Rule {
         conseqeunts.add(atom);
     }
 
+    private ArrayList<Integer> generateAtomIDs(ArrayList<Atom> atoms){
+        ArrayList<Integer> ids = new ArrayList<Integer>();
+
+        for(Atom atom : atoms){
+            ids.add(atom.getId());
+        }
+        return ids;
+    }
+    public ArrayList<Integer> getAntecedentAtomIDs(){
+        return generateAtomIDs(antecedents);
+    }
+
+    public ArrayList<Integer> getConsequentAtomIDs(){
+        return generateAtomIDs(conseqeunts);
+    }
+
     public ArrayList<Atom> getConseqeunts() {
         return conseqeunts;
     }
