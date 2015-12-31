@@ -15,7 +15,7 @@ public class AssociateRuleListProtocol extends IKAProtocol {
     public static JSONObject getAssoicateRule(String ants, String cons){
         JSONObject jsonObject = getDefaultJSON("associateRule", "SUCCESS");
 
-        String delimiter = "@!";
+        String delimiter = "!@";
         ArrayList<String> antList = generateList(ants.split(delimiter));
         ArrayList<String> conList = generateList(cons.split(delimiter));
 
