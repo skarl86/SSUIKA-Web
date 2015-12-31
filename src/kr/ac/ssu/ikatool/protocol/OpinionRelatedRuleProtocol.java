@@ -2,7 +2,7 @@ package kr.ac.ssu.ikatool.protocol;
 
 import kr.ac.ssu.ikatool.util.sql.SQLManager;
 import kr.ac.ssu.ikatool.util.sql.entitiy.Atom;
-import kr.ac.ssu.ikatool.util.sql.entitiy.OpinionRuleResult;
+import kr.ac.ssu.ikatool.util.sql.entitiy.RuleResult;
 import kr.ac.ssu.ikatool.util.sql.entitiy.Rule;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -15,10 +15,11 @@ import java.util.ArrayList;
 public class OpinionRelatedRuleProtocol extends IKAProtocol{
     public static JSONObject getRuleList(String patientID, String opinionID){
         JSONObject jsonObject = getDefaultJSON();
-        OpinionRuleResult result = SQLManager.getRuleByOpinion(patientID, opinionID);
-        JSONObject rule = new JSONObject();
+        RuleResult result = SQLManager.getRuleByOpinion(patientID, opinionID);
+        JSONObject rule = null;
         JSONArray ruleList = new JSONArray();
         for(Rule r : result.getRules()){
+            rule = new JSONObject();
             rule.put("ruleID", r.getId());
             rule.put("author", r.getAuthor());
             rule.put("createDate", r.getCreateDate());
@@ -35,9 +36,12 @@ public class OpinionRelatedRuleProtocol extends IKAProtocol{
     }
     public static JSONArray createAtoms(ArrayList<Atom> atoms){
         JSONArray result = new JSONArray();
-
+        JSONObject atomMap = null;
         for(Atom atom : atoms){
-            result.add(atom.getName());
+            atomMap = new JSONObject();
+            atomMap.put("name", atom.getName());
+            atomMap.put("value", atom.getValue());
+            result.add(atomMap);
         }
 
         return result;

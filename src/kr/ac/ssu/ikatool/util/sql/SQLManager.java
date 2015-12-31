@@ -7,10 +7,13 @@ import kr.ac.ssu.ikatool.protocol.AutoCompleteListProtocol;
 import kr.ac.ssu.ikatool.util.sql.entitiy.*;
 
 /**
- * Created by NCri on 2015. 12. 23..
+ * Created by NCri ON 2015. 12. 23..
  */
 public class SQLManager {
-    // JDBC driver name and database URL
+    // JDBC driver name AND database URL
+    static final int ANTCEDENT = 1;
+    static final int CONSEQUENT = 2;
+
     static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
     static final String DB_URL = "jdbc:mysql://ailab.synology.me/medicaldb";
 
@@ -27,134 +30,134 @@ public class SQLManager {
         return DriverManager.getConnection(DB_URL,USER,PASS);
     }
 
-    public static OpinionRuleResult getRuleByOpinion(String patientID, String opinionID){
+    public static RuleResult getRuleByPatient(String patientID){
+        return getRuleByOpinion(patientID, null);
+    }
+    public static RuleResult generateRule(RuleResult result, ResultSet rs, int antOrCon) throws SQLException {
+        int ruleID = -1;
+        String author = null;
+        String createdDate = null;
+        String modifiedDate = null;
+        int atomID = -1;
+        int atomType = -1;
+        String atomName = null;
+        String valueString = null;
+
+        Rule rule = null;
+
+        // Antecedent Query Result
+        while(rs.next()){
+            //Retrieve by column name
+            ruleID = rs.getInt(2);
+            author = rs.getString(4);
+            createdDate = rs.getString(5);
+            modifiedDate = rs.getString(6);
+            atomID = rs.getInt(7);
+            atomName = rs.getString(9);
+            atomType = rs.getInt(10);
+            valueString = rs.getString(11);
+
+            rule = result.getRuleByID(ruleID);
+
+            if(rule == null)
+                rule = new Rule(ruleID, author, createdDate, modifiedDate);
+
+            if(antOrCon == ANTCEDENT)
+                rule.addAntecedents(new Atom(atomID, atomName,atomType, valueString));
+            else if(antOrCon == CONSEQUENT)
+                rule.addCoseqeunts(new Atom(atomID, atomName,atomType, valueString));
+            result.addRule(rule);
+        }
+
+        return result;
+    }
+    public static RuleResult getRuleByOpinion(String patientID, String opinionID){
 
         Connection conn = null;
-        PreparedStatement prestmt = null;
+        Statement stmt = null;
 
-        OpinionRuleResult result = new OpinionRuleResult();
+//        RuleResult result = new RuleResult();
+        RuleResult result = new RuleResult();
 
         try{
             //STEP 2: Register JDBC driver
             //STEP 3: Open a connection
             conn = getConn();
 
+            stmt = conn.createStatement();
+
             //STEP 4: Execute a query
             System.out.println("Creating statement...");
-            String ruleIDColumn = "rule_user.rule_id";
-            String authorNameColumn = "user.name";
-            String createdDateColumn = "created_date";
-            String modifiedDateColumn = "modified_date";
-            String atomIDColumn = "atom_default.atom_id";
-            String atomTypeColumn = "atom_default.atom_type";
-            String atomNameColumn = "atom_name";
-            String valueStrColumn = "value_str";
 
-            String sql = "SELECT rule_user.rule_id, user.name, created_date, modified_date, atom_default.atom_id, atom_default.atom_type, atom_name, value_str " +
-                    "FROM (patient_opinion_rule JOIN rule_user rule_user ON id = ? AND opinion_id = ? " +
-                    "JOIN user ON rule_user.user_id = user.id " +
-                    "JOIN rule_ant " +
-                    "JOIN valued_atom ON ant_va_id = va_id) " +
-                    "JOIN atom_default ON valued_atom.atom_id = atom_default.atom_id " +
-                    "JOIN value on valued_atom.value_id = value.value_id";
+            String sql = QueryManager.generatedQueryAntecedentsRuleListBy(patientID, opinionID);
+
             System.out.println(String.format("Patient ID : %s / Opinion ID : %s", patientID, opinionID));
 
-            prestmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery(sql);
 
-//            prestmt.setString(1, ruleIDColumn);
-//            prestmt.setString(2, authorNameColumn);
-//            prestmt.setString(3, createdDateColumn);
-//            prestmt.setString(4, modifiedDateColumn);
-//            prestmt.setString(5, atomIDColumn);
-//            prestmt.setString(6, atomTypeColumn);
-//            prestmt.setString(7, atomNameColumn);
-//            prestmt.setString(8, valueStrColumn);
+            result = generateRule(result, rs, ANTCEDENT);
+//            int ruleID = -1;
+//            String author = null;
+//            String createdDate = null;
+//            String modifiedDate = null;
+//            int atomID = -1;
+//            int atomType = -1;
+//            String atomName = null;
+//            String valueString = null;
+//
+//            Rule rule = null;
+//
+//            // Antecedent Query Result
+//            while(rs.next()){
+//                //Retrieve by column name
+//                ruleID = rs.getInt(2);
+//                author = rs.getString(4);
+//                createdDate = rs.getString(5);
+//                modifiedDate = rs.getString(6);
+//                atomID = rs.getInt(7);
+//                atomName = rs.getString(9);
+//                atomType = rs.getInt(10);
+//                valueString = rs.getString(11);
+//
+//                rule = result.getRuleByID(ruleID);
+//
+//                if(rule == null)
+//                    rule = new Rule(ruleID, author, createdDate, modifiedDate);
+//
+//                rule.addAntecedents(new Atom(atomID, atomName,atomType, valueString));
+//                result.addRule(rule);
+//            }
 
-            prestmt.setString(1, patientID);
-            prestmt.setString(2, opinionID);
 
-            ResultSet rs = prestmt.executeQuery();
+            sql = QueryManager.generatedQueryConsequentsRuleListBy(patientID, opinionID);
 
-            int ruleID = -1;
-            String author = null;
-            String createdDate = null;
-            String modifiedDate = null;
-            int atomID = -1;
-            int atomType = -1;
-            String atomName = null;
-            String valueString = null;
+            rs = stmt.executeQuery(sql);
 
-            Rule rule = null;
-
-            // Antecedent Query Result
-            while(rs.next()){
-                //Retrieve by column name
-                ruleID = rs.getInt(ruleIDColumn);
-                author = rs.getString(authorNameColumn);
-                createdDate = rs.getString(createdDateColumn);
-                modifiedDate = rs.getString(modifiedDateColumn);
-                atomID = rs.getInt(atomIDColumn);
-                atomType = rs.getInt(atomTypeColumn);
-                atomName = rs.getString(atomNameColumn);
-                valueString = rs.getString(valueStrColumn);
-
-                rule = result.getRuleByID(ruleID);
-
-                if(rule == null)
-                    rule = new Rule(ruleID, author, createdDate, modifiedDate);
-
-                rule.addAntecedents(new Atom(atomID, atomName,atomType, valueString));
-                result.addRule(rule);
-            }
-
-            sql = "SELECT rule_user.rule_id, user.name, created_date, modified_date, atom_default.atom_id, atom_default.atom_type, atom_name, value_str " +
-                    "FROM (patient_opinion_rule JOIN rule_user rule_user ON id = ? AND opinion_id = ? " +
-                    "JOIN user ON rule_user.user_id = user.id " +
-                    "JOIN rule_con " +
-                    "JOIN valued_atom ON con_va_id = va_id) " +
-                    "JOIN atom_default ON valued_atom.atom_id = atom_default.atom_id " +
-                    "JOIN value on valued_atom.value_id = value.value_id";
-
-            prestmt = conn.prepareStatement(sql);
-
-//            prestmt.setString(1, ruleIDColumn);
-//            prestmt.setString(2, authorNameColumn);
-//            prestmt.setString(3, createdDateColumn);
-//            prestmt.setString(4, modifiedDateColumn);
-//            prestmt.setString(5, atomIDColumn);
-//            prestmt.setString(6, atomTypeColumn);
-//            prestmt.setString(7, atomNameColumn);
-//            prestmt.setString(8, valueStrColumn);
-
-            prestmt.setString(1, patientID);
-            prestmt.setString(2, opinionID);
-
-            rs = prestmt.executeQuery();
-
-            // Consequent Query Result
-            while(rs.next()){
-                //Retrieve by column name
-                ruleID = rs.getInt(ruleIDColumn);
-                author = rs.getString(authorNameColumn);
-                createdDate = rs.getString(createdDateColumn);
-                modifiedDate = rs.getString(modifiedDateColumn);
-                atomID = rs.getInt(atomIDColumn);
-                atomType = rs.getInt(atomTypeColumn);
-                atomName = rs.getString(atomNameColumn);
-                valueString = rs.getString(valueStrColumn);
-
-                rule = result.getRuleByID(ruleID);
-
-                if(rule == null)
-                    rule = new Rule(ruleID, author, createdDate, modifiedDate);
-
-                rule.addCoseqeunts(new Atom(atomID, atomName,atomType, valueString));
-                result.addRule(rule);
-            }
+            result = generateRule(result, rs, CONSEQUENT);
+//            // Consequent Query Result
+//            while(rs.next()){
+//                //Retrieve by column name
+//                ruleID = rs.getInt(2);
+//                author = rs.getString(4);
+//                createdDate = rs.getString(5);
+//                modifiedDate = rs.getString(6);
+//                atomID = rs.getInt(7);
+//                atomName = rs.getString(9);
+//                atomType = rs.getInt(10);
+//                valueString = rs.getString(11);
+//
+//                rule = result.getRuleByID(ruleID);
+//
+//                if(rule == null)
+//                    rule = new Rule(ruleID, author, createdDate, modifiedDate);
+//
+//                rule.addCoseqeunts(new Atom(atomID, atomName,atomType, valueString));
+//                result.addRule(rule);
+//            }
 
             //STEP 6: Clean-up environment
             rs.close();
-            prestmt.close();
+            stmt.close();
             conn.close();
         }catch(SQLException se){
             //Handle errors for JDBC
@@ -165,8 +168,8 @@ public class SQLManager {
         }finally{
             //finally block used to close resources
             try{
-                if(prestmt!=null)
-                    prestmt.close();
+                if(stmt!=null)
+                    stmt.close();
             }catch(SQLException se2){
             }// nothing we can do
             try{
@@ -324,7 +327,7 @@ public class SQLManager {
                     "WHERE P.id = " + paramPatientID;
             ResultSet rs = stmt.executeQuery(sql);
 
-            //STEP 5: Extract data from result set
+            //STEP 5: Extract data FROM result set
             while(rs.next()){
                 //Retrieve by column name
                 int id  = rs.getInt("P.id");
