@@ -33,6 +33,11 @@ public class Atom {
         this.value = value;
     }
 
+    public Atom(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public Integer getId() {
         return id;
     }
