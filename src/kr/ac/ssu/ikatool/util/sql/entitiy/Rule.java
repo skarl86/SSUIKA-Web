@@ -14,6 +14,10 @@ public class Rule {
     private String modifyDate;
     private String formalString;
 
+    public Rule(Integer id) {
+        this.id = id;
+    }
+
     public Rule(Integer id, String author, String createDate, String modifyDate) {
         this.id = id;
         this.author = author;
@@ -57,5 +61,9 @@ public class Rule {
 
     public String getFormalString() {
         return formalString;
+    }
+
+    public String toString(){
+        return String.format("Antecedent : %s // Consequent : %s", this.antecedents, this.conseqeunts);
     }
 }

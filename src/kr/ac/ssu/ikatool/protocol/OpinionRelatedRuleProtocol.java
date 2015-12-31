@@ -24,8 +24,8 @@ public class OpinionRelatedRuleProtocol extends IKAProtocol{
             rule.put("author", r.getAuthor());
             rule.put("createDate", r.getCreateDate());
             rule.put("modifyDate", r.getModifyDate());
-            rule.put("antecedent", createAtoms(r.getAntecedents()));
-            rule.put("consequent", createAtoms(r.getConseqeunts()));
+            rule.put("antecedent", JSONGenerator.createAtoms(r.getAntecedents()));
+            rule.put("consequent", JSONGenerator.createAtoms(r.getConseqeunts()));
             ruleList.add(rule);
         }
 
@@ -33,17 +33,5 @@ public class OpinionRelatedRuleProtocol extends IKAProtocol{
         jsonObject.put("highlight", new JSONArray());
         return jsonObject;
 
-    }
-    public static JSONArray createAtoms(ArrayList<Atom> atoms){
-        JSONArray result = new JSONArray();
-        JSONObject atomMap = null;
-        for(Atom atom : atoms){
-            atomMap = new JSONObject();
-            atomMap.put("name", atom.getName());
-            atomMap.put("value", atom.getValue());
-            result.add(atomMap);
-        }
-
-        return result;
     }
 }

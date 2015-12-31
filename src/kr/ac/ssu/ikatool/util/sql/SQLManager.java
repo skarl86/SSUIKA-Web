@@ -1,7 +1,7 @@
 package kr.ac.ssu.ikatool.util.sql;
 
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 
 import kr.ac.ssu.ikatool.protocol.AutoCompleteListProtocol;
 import kr.ac.ssu.ikatool.util.sql.entitiy.*;
@@ -71,6 +71,198 @@ public class SQLManager {
 
         return result;
     }
+    public static Integer getAtomIDByName(String name){
+        Integer id = -1;
+
+        Connection conn = null;
+        PreparedStatement prestmt = null;
+
+        try{
+            //STEP 2: Register JDBC driver
+            //STEP 3: Open a connection
+            conn = getConn();
+
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+
+            String sql = "select atom_id from  atom_default where atom_name = ?";
+
+            prestmt = conn.prepareStatement(sql);
+            prestmt.setString(1, name);
+
+            ResultSet rs = prestmt.executeQuery();
+
+            while(rs.next()){
+                //Retrieve by column name
+                id = rs.getInt(1);
+            }
+
+            //STEP 6: Clean-up environment
+            rs.close();
+            prestmt.close();
+            conn.close();
+        }catch(SQLException se){
+            //Handle errors for JDBC
+            se.printStackTrace();
+        }catch(Exception e){
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }finally{
+            //finally block used to close resources
+            try{
+                if(prestmt!=null)
+                    prestmt.close();
+            }catch(SQLException se2){
+            }// nothing we can do
+            try{
+                if(conn!=null)
+                    conn.close();
+            }catch(SQLException se){
+                se.printStackTrace();
+            }//end finally try
+        }//end try
+        System.out.println("Goodbye!");
+
+        return id;
+    }
+    public static ArrayList<Integer> generateAtomIDList(ArrayList<String> atomNameList){
+        ArrayList<Integer> idList = new ArrayList<Integer>();
+        for(String name : atomNameList){
+            idList.add(getAtomIDByName(name));
+        }
+        return idList;
+    }
+    private static HashMap<Integer, Rule> generateRule(ResultSet rs, HashMap<Integer, Rule> ruleMap, int antOrCons) throws SQLException {
+        int ruleID = -1;
+        int atomID = -1;
+        String atomName = null;
+        int atomType = -1;
+        int valueID = -1;
+        String valueName = null;
+
+        Rule rule = null;
+
+        // rule_id  new_atom_id atom_name   atom_type   new_value_id    value_str
+
+        while(rs.next()){
+            //Retrieve by column name
+            ruleID = rs.getInt(1);
+            atomID = rs.getInt(2);
+            atomName = rs.getString(3);
+            atomType = rs.getInt(4);
+            valueID = rs.getInt(5);
+            valueName = rs.getString(6);
+
+            if(ruleMap.containsKey(ruleID)){
+                rule = ruleMap.get(ruleID);
+            } else {
+                rule = new Rule(ruleID);
+            }
+
+            if(antOrCons == ANTCEDENT){
+                rule.addAntecedents(new Atom(atomID,atomName, atomType, new Value(valueID, valueName)));
+            }else if(antOrCons == CONSEQUENT){
+                rule.addCoseqeunts(new Atom(atomID,atomName, atomType, new Value(valueID, valueName)));
+            }
+
+            ruleMap.put(ruleID, rule);
+        }
+        return ruleMap;
+    }
+    public static HashMap<Integer, Rule> generateRuleMap(){
+        Connection conn = null;
+        Statement stmt = null;
+
+        HashMap<Integer, Rule> ruleMap = new HashMap<Integer, Rule>();
+
+        try{
+            //STEP 2: Register JDBC driver
+            //STEP 3: Open a connection
+            conn = getConn();
+
+            stmt = conn.createStatement();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+
+            String sql = "select rule_id, new_atom_id, atom_name, atom_type, new_value_id, value_str from " +
+                            "(select rule_id, new_atom_id, atom_name, atom_type, new_value_id from " +
+                                "(select rule_id, atom_id as new_atom_id, value_id as new_value_id from " +
+                                    "rule_ant join valued_atom on ant_va_id = va_id) " +
+                                "as A join atom_default on new_atom_id = atom_id) " +
+                            "as B join value on value_id = new_value_id";
+            ResultSet rs = stmt.executeQuery(sql);
+            ruleMap = generateRule(rs, ruleMap, ANTCEDENT);
+
+            sql = "select rule_id, new_atom_id, atom_name, atom_type, new_value_id, value_str from " +
+                        "(select rule_id, new_atom_id, atom_name, atom_type, new_value_id from " +
+                            "(select rule_id, atom_id as new_atom_id, value_id as new_value_id from " +
+                                "rule_con join valued_atom on con_va_id = va_id) " +
+                            "as A join atom_default on new_atom_id = atom_id) " +
+                        "as B join value on value_id = new_value_id";
+            rs = stmt.executeQuery(sql);
+            ruleMap = generateRule(rs, ruleMap, CONSEQUENT);
+
+            //STEP 6: Clean-up environment
+            rs.close();
+            stmt.close();
+            conn.close();
+        }catch(SQLException se){
+            //Handle errors for JDBC
+            se.printStackTrace();
+        }catch(Exception e){
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }finally{
+            //finally block used to close resources
+            try{
+                if(stmt!=null)
+                    stmt.close();
+            }catch(SQLException se2){
+            }// nothing we can do
+            try{
+                if(conn!=null)
+                    conn.close();
+            }catch(SQLException se){
+                se.printStackTrace();
+            }//end finally try
+        }//end try
+        System.out.println("Goodbye!");
+
+        return ruleMap;
+    }
+    public static Set<Rule> getAssociateRule(ArrayList<String> antecedent, ArrayList<String> consequent){
+        ArrayList<Integer> antAtomIDList = generateAtomIDList(antecedent);
+        ArrayList<Integer> consAtomIDList = generateAtomIDList(consequent);
+
+        HashMap<Integer, Rule> ruleMap = generateRuleMap();
+
+        Set<Rule> associateRuleSet = new HashSet<Rule>();
+
+        boolean isAssociate = false;
+        Rule rule = null;
+        for(Integer key : ruleMap.keySet()){
+
+            isAssociate = false;
+
+            rule = ruleMap.get(key);
+
+            if(rule != null){
+                for(Atom atom : rule.getAntecedents()){
+                    isAssociate |= antAtomIDList.contains(atom.getId());
+                }
+
+                for(Atom atom : rule.getConseqeunts()){
+                    isAssociate |= consAtomIDList.contains(atom.getId());
+                }
+
+                if(isAssociate) associateRuleSet.add(rule);
+            }
+        }
+
+        return associateRuleSet;
+    }
     public static RuleResult getRuleByOpinion(String patientID, String opinionID){
 
         Connection conn = null;
@@ -89,71 +281,22 @@ public class SQLManager {
             //STEP 4: Execute a query
             System.out.println("Creating statement...");
 
+            // Antecedent를 가져올때랑 Consequent를 가져올 때 Query가 달라진다.
             String sql = QueryManager.generatedQueryAntecedentsRuleListBy(patientID, opinionID);
 
             System.out.println(String.format("Patient ID : %s / Opinion ID : %s", patientID, opinionID));
 
+            // Antecedent 가져오기.
             ResultSet rs = stmt.executeQuery(sql);
 
             result = generateRule(result, rs, ANTCEDENT);
-//            int ruleID = -1;
-//            String author = null;
-//            String createdDate = null;
-//            String modifiedDate = null;
-//            int atomID = -1;
-//            int atomType = -1;
-//            String atomName = null;
-//            String valueString = null;
-//
-//            Rule rule = null;
-//
-//            // Antecedent Query Result
-//            while(rs.next()){
-//                //Retrieve by column name
-//                ruleID = rs.getInt(2);
-//                author = rs.getString(4);
-//                createdDate = rs.getString(5);
-//                modifiedDate = rs.getString(6);
-//                atomID = rs.getInt(7);
-//                atomName = rs.getString(9);
-//                atomType = rs.getInt(10);
-//                valueString = rs.getString(11);
-//
-//                rule = result.getRuleByID(ruleID);
-//
-//                if(rule == null)
-//                    rule = new Rule(ruleID, author, createdDate, modifiedDate);
-//
-//                rule.addAntecedents(new Atom(atomID, atomName,atomType, valueString));
-//                result.addRule(rule);
-//            }
-
 
             sql = QueryManager.generatedQueryConsequentsRuleListBy(patientID, opinionID);
 
+            // Consequent 가져오기.
             rs = stmt.executeQuery(sql);
 
             result = generateRule(result, rs, CONSEQUENT);
-//            // Consequent Query Result
-//            while(rs.next()){
-//                //Retrieve by column name
-//                ruleID = rs.getInt(2);
-//                author = rs.getString(4);
-//                createdDate = rs.getString(5);
-//                modifiedDate = rs.getString(6);
-//                atomID = rs.getInt(7);
-//                atomName = rs.getString(9);
-//                atomType = rs.getInt(10);
-//                valueString = rs.getString(11);
-//
-//                rule = result.getRuleByID(ruleID);
-//
-//                if(rule == null)
-//                    rule = new Rule(ruleID, author, createdDate, modifiedDate);
-//
-//                rule.addCoseqeunts(new Atom(atomID, atomName,atomType, valueString));
-//                result.addRule(rule);
-//            }
 
             //STEP 6: Clean-up environment
             rs.close();

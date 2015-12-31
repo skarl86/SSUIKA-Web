@@ -4,13 +4,26 @@ package kr.ac.ssu.ikatool.util.sql.entitiy;
  * Created by NCri on 2015. 12. 29..
  */
 public class Atom {
-    public Integer id;
-    public String name;
-    public Integer type;
-    public String value;
+    private Integer id;
+    private String name;
+    private Integer type;
+    private String value;
+    private Value _value;
+
+    public Atom(Integer id, String name, Integer type ,Value _value) {
+        this.id = id;
+        this.name = name;
+        this._value = _value;
+        this.type = type;
+    }
+
+    public Atom(Integer id, Value value) {
+        this.id = id;
+        this._value = value;
+    }
 
     public Atom(Integer id, String name, Integer type) {
-        this(id, name, type, null);
+        this(id, name, type, "");
     }
 
     public Atom(Integer id, String name, Integer type, String value) {
@@ -33,4 +46,10 @@ public class Atom {
     }
 
     public String getValue() { return value; }
+
+    public Integer getValueID() { return _value.getId(); }
+
+    public boolean isEqaul(Atom atom){
+        return atom.getId() == this.getId();
+    }
 }
