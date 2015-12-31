@@ -560,4 +560,602 @@ public class SQLManager {
 
         return pat;
     }
+
+
+    public static Boolean insertValued_Atom(int atomID, int valueID) {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            preparedStatement = conn.prepareStatement("INSERT INTO valued_atom(atom_id, value_id) VALUES (?,?)");
+            preparedStatement.setInt(1, atomID);
+            preparedStatement.setInt(2, valueID);
+
+            if (preparedStatement.executeUpdate() > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            return false;
+        }
+    }
+
+    public static int getValued_atomID(int atomID , int valueID){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = String.format("SELECT va_id FROM valued_atom WHERE atom_id = %d AND value_id = %d", atomID, valueID);
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) == 0){
+                return -1;
+            }else {
+                rs.next();
+                return rs.getInt("va_id");
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return -1;
+    }
+
+
+    public static Boolean insertAtom_Value(int atomID, int valueID){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            preparedStatement = conn.prepareStatement("INSERT INTO atom_value(atom_id, value_id) VALUES (?,?)");
+            preparedStatement.setInt(1, atomID);
+            preparedStatement.setInt(2, valueID);
+
+            if (preparedStatement.executeUpdate() > 0) {
+                //good
+                return true;
+            } else {
+                return false;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return false;
+        }
+
+    }
+/*
+    public static int getValueID(String value_Str){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = String.format("SELECT value_id FROM value WHERE value_str = %s", value_Str);
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) == 0){
+                return -1;
+            }else {
+                return rs.getInt(0);
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return -1;
+    }*/
+
+    public static Boolean insertValued_atom(int atomID, int valueID){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            preparedStatement = conn.prepareStatement("INSERT INTO valued_atom(atom_id, value_id) VALUES (?,?)");
+            preparedStatement.setInt(1, atomID);
+            preparedStatement.setInt(2, valueID);
+
+            if (preparedStatement.executeUpdate() > 0) {
+                //good
+                return true;
+            } else {
+                return false;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+            return false;
+        }
+
+    }
+
+    public static HashMap<Integer, ArrayList<Integer>> get_ant_Rule(){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+//        ArrayList<RuleInAtom> antAtomArr = new ArrayList<>();
+        HashMap<Integer, ArrayList<Integer>> antHash = new HashMap<>();
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = "SELECT rule_id, ant_va_id FROM rule_ant";
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) == 0){
+                return null;
+            }else {
+
+                while(rs.next()){
+                    int ruleId = Integer.parseInt(rs.getString("rule_id"));
+                    int antVaId = Integer.parseInt(rs.getString("ant_va_id"));
+
+                    if (antHash.keySet().contains(ruleId)) { // ruleID가 이미 존재할 경우.
+                        ArrayList<Integer> vaList = antHash.get(ruleId);
+                        if (!vaList.contains((Integer) antVaId)) {
+                            vaList.add((Integer) antVaId);
+                        }
+                    } else {                                    // ruleID가 존재하지 않을 경우.
+                        ArrayList<Integer> vaList = new ArrayList<>();
+                        vaList.add(antVaId);
+                        antHash.put(ruleId, vaList);
+                    }
+                }
+
+                return antHash;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return null;
+    }
+
+    public static  HashMap<Integer, ArrayList<Integer>> get_con_Rule(){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+//        ArrayList<RuleInAtom> antAtomArr = new ArrayList<>();
+        HashMap<Integer, ArrayList<Integer>> conHash = new HashMap<>();
+
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = "SELECT rule_id, con_va_id FROM rule_con";
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) == 0){
+                return null;
+            }else {
+
+                while(rs.next()){
+                    int ruleId = Integer.parseInt(rs.getString("rule_id"));
+                    int conVaId = Integer.parseInt(rs.getString("con_va_id"));
+
+                    if (conHash.keySet().contains(ruleId)) { // ruleID가 이미 존재할 경우.
+                        ArrayList<Integer> vaList = conHash.get(ruleId);
+                        if (!vaList.contains((Integer) conVaId)) {
+                            vaList.add((Integer) conVaId);
+                        }
+                    } else {                                    // ruleID가 존재하지 않을 경우.
+                        ArrayList<Integer> vaList = new ArrayList<>();
+                        vaList.add(conVaId);
+                        conHash.put(ruleId, vaList);
+                    }
+                }
+
+                return conHash;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return null;
+    }
+
+    public static int getRuleCount(){
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = "SELECT DISTINCT count(rule_id) AS rulecount FROM rule_con";
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) == 0){
+                return -1;
+            }else {
+                rs.next();
+                return rs.getInt("rulecount");
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return -1;
+    }
+
+    public static int  insertRule(ArrayList<Integer> arr, String flag) throws SQLException, ClassNotFoundException {
+
+        String sql = null;
+        if(flag.equals("con")){
+            sql = "INSERT INTO rule_con(rule_id, con_va_id) VALUES (?,?)";
+        }else if(flag.equals("ant")){
+            sql = "INSERT INTO rule_ant(rule_id, ant_va_id) VALUES (?,?)";
+        }
+
+        Connection connection = getConn();
+        PreparedStatement statement = connection.prepareStatement(sql);
+
+        int i = 0;
+        int ruleID =  getRuleCount()+1;
+
+        for (Integer atomID : arr) {
+            statement.setInt(1,ruleID);
+            statement.setInt(2, atomID);
+
+            statement.addBatch();
+            i++;
+
+            if (i % 1000 == 0 || i == arr.size()) {
+                statement.executeBatch(); // Execute every 1000 items.
+            }
+        }
+
+        return ruleID;
+
+    }
+
+    public static int getResultSetSize(ResultSet resultSet) {
+        int size = -1;
+
+        try {
+            resultSet.last();
+            size = resultSet.getRow();
+            resultSet.beforeFirst();
+        } catch(SQLException e) {
+            return size;
+        }
+
+        return size;
+    }
+
+    public static boolean isExistedAtom(String atomName){
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = String.format("SELECT * FROM atom_default WHERE atom_name = \'%s\'", atomName);
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) > 0){
+                return true;
+            }else {
+                return false;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return false;
+
+    }
+
+    public static int getAtomID(String atomName){
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = String.format("SELECT atom_id FROM atom_default WHERE atom_name = \'%s\'", atomName);
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) > 0){
+                rs.next();
+                return rs.getInt("atom_id");
+            }else {
+                return -1;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return -1;
+
+    }
+
+
+
+    public static boolean isExistedValue(String valueName){
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = String.format("SELECT value_str FROM value WHERE value_str = \'%s\'", valueName);
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) > 0){
+                return true;
+            }else {
+                return false;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return false;
+
+    }
+
+    public static int getValueID(String valueName){
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            String sql = String.format("SELECT value_id FROM value WHERE value_str = \'%s\'", valueName);
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) > 0){
+                rs.next();
+                return rs.getInt("value_id");
+            }else {
+                return -1;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return -1;
+
+    }
+
+    public static int insertAtom_Default(String atomName, int atomType){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            conn = getConn();
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            preparedStatement = conn.prepareStatement("INSERT INTO atom_default(atom_name, atom_type) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1, atomName);
+            preparedStatement.setInt(2, atomType);
+
+            if (preparedStatement.executeUpdate() > 0) {
+                //good
+                ResultSet keys = preparedStatement.getGeneratedKeys();
+                keys.next();
+                return keys.getInt(1);
+            } else {
+                return -1;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return -1;
+    }
+
+    public static int insertValue(String valueName){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            preparedStatement = conn.prepareStatement("INSERT INTO value( value_str) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+            preparedStatement.setString(1, valueName);
+
+            if (preparedStatement.executeUpdate() > 0) {
+                ResultSet keys = preparedStatement.getGeneratedKeys();
+                keys.next();
+                return keys.getInt(1);
+            } else {
+                return -1;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return -1;
+    }
+
+    public static boolean isExistedValuedAtom(int atomID, int valueID){
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = String.format("SELECT va_id FROM valued_atom WHERE atom_id = %s AND value_id = \'%s\'", atomID, valueID);
+            rs = stmt.executeQuery(sql);
+            if (getResultSetSize(rs) > 0){
+                return true;
+            }else {
+                return false;
+            }
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+        return false;
+
+    }
+
+
+    public static Boolean insertPatientOpinionRule( int patientID, int opinionID, int ruleID) {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            preparedStatement = conn.prepareStatement("INSERT INTO patient_opinion_rule(id, opinion_id, rule_id ) VALUES (?,?,?)");
+
+            preparedStatement.setInt(1, patientID);
+            preparedStatement.setInt(2, opinionID);
+            preparedStatement.setInt(3, ruleID);
+
+            if (preparedStatement.executeUpdate() > 0) {
+                //good
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            return false;
+        }
+    }
+
+    public static Boolean insertRuleUser(int ruleID, int authorID) {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+            preparedStatement = conn.prepareStatement("INSERT INTO rule_user(rule_id, user_id, created_date, modified_date ) VALUES (?,?,?,?)");
+
+            preparedStatement.setInt(1, ruleID);
+            preparedStatement.setInt(2, authorID);
+            java.sql.Timestamp  sqlDate = new java.sql.Timestamp(new java.util.Date().getTime());
+            preparedStatement.setTimestamp(3, sqlDate);
+            preparedStatement.setTimestamp(4, sqlDate);
+
+            if (preparedStatement.executeUpdate() > 0) {
+                //good
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            System.out.println(e.toString());
+            return false;
+        }
+    }
+
+    public static Boolean deleteRule(String patientID ,String opinionID, String ruleID) throws SQLException, ClassNotFoundException {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        PreparedStatement preparedStatement = null;
+
+
+        conn = getConn();
+
+        //STEP 4: Execute a query
+        System.out.println("Creating statement...");
+        stmt = conn.createStatement();
+
+        preparedStatement = conn.prepareStatement("DELETE FROM patient_opinion_rule WHERE id = ? AND opinion_id = ? AND rule_id = ?");
+        preparedStatement.setInt(1, Integer.parseInt(patientID));
+        preparedStatement.setInt(2, Integer.parseInt(opinionID));
+        preparedStatement.setInt(3, Integer.parseInt(ruleID));
+
+        if (preparedStatement.executeUpdate() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
