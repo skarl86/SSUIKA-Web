@@ -240,24 +240,30 @@ public class SQLManager {
 
         Set<Rule> associateRuleSet = new HashSet<Rule>();
 
-        boolean isAssociate = false;
+        boolean isAssociateAntecedent = false;
+        boolean isAssociateConsequent = false;
         Rule rule = null;
         for(Integer key : ruleMap.keySet()){
 
-            isAssociate = false;
+            isAssociateAntecedent = true;
+            isAssociateConsequent = true;
 
             rule = ruleMap.get(key);
 
             if(rule != null){
-                for(Atom atom : rule.getAntecedents()){
-                    isAssociate |= antAtomIDList.contains(atom.getId());
+                for(Integer atomID : antAtomIDList){
+                    for(Atom exAtom : rule.getAntecedents()){
+                        isAssociateAntecedent &= exAtom.getId() == atomID;
+                    }
                 }
 
-                for(Atom atom : rule.getConseqeunts()){
-                    isAssociate |= consAtomIDList.contains(atom.getId());
+                for(Integer atomID : consAtomIDList){
+                    for(Atom exAtom : rule.getConseqeunts()){
+                        isAssociateConsequent &= exAtom.getId() == atomID;
+                    }
                 }
 
-                if(isAssociate) associateRuleSet.add(rule);
+                if(isAssociateAntecedent | isAssociateConsequent) associateRuleSet.add(rule);
             }
         }
 
