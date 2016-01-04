@@ -15,7 +15,7 @@
         String antecedents = request.getParameter("antecedents");
         String consequents = request.getParameter("consequents");
         String authorID = request.getParameter("authorID");
-        out.print(SetRuleProtocol.insertRule(patientID,opinionID,antecedents,consequents, authorID));
+        out.print(SetRuleProtocol.insertRule(patientID.trim(),opinionID.trim(),antecedents.trim(),consequents.trim(), authorID.trim()));
         out.flush();
     }else {
         out.print(SetRuleProtocol.getJSON("check parameter","-1"));

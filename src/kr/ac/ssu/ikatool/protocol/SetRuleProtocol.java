@@ -33,10 +33,10 @@ public class SetRuleProtocol {
              get ID
          */
 
-        ArrayList<ValuedAtom> arrAnt = setAtom(parseAtom(sAntecedents));
+        ArrayList<ValuedAtom> arrAnt = setAtom(parseAtom(sAntecedents.trim()));
         ArrayList<Integer> antVaIDList = getVaIdList(arrAnt);
 
-        ArrayList<ValuedAtom> arrCon = setAtom(parseAtom(sConsequents));
+        ArrayList<ValuedAtom> arrCon = setAtom(parseAtom(sConsequents.trim()));
         ArrayList<Integer> conVaIDList = getVaIdList(arrCon);
 
         HashMap<Integer, ArrayList<Integer>> antHash = SQLManager.get_ant_Rule();
@@ -108,14 +108,14 @@ public class SetRuleProtocol {
         //AST_H!@ASP_N!@AAA_P
         for (String sAtom : tempArr) {
             String[] arrAtom = sAtom.split("_",2);
-            atomList.add(new ValuedAtom(new KSAtom(arrAtom[0]), new Value(arrAtom[1])));
+            atomList.add(new ValuedAtom(new KSAtom(arrAtom[0].trim()), new Value(arrAtom[1].trim())));
         }
         return atomList;
     }
     public static ArrayList<ValuedAtom> setAtom(ArrayList<ValuedAtom> arr) throws SQLException {
         for (ValuedAtom vAtom : arr) {
             //atom이 존재 여부 파악
-            String atomName = vAtom.getAtom().getName();
+            String atomName = vAtom.getAtom().getName().trim();
             if(!SQLManager.isExistedAtom(atomName)){
                 //존재 안함
                 SQLManager.insertAtom_Default(atomName, 0);

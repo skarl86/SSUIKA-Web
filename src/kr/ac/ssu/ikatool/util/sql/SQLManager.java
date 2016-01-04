@@ -3,8 +3,13 @@ package kr.ac.ssu.ikatool.util.sql;
 import java.sql.*;
 import java.util.*;
 
+import kr.ac.ssu.ikatool.obj.*;
 import kr.ac.ssu.ikatool.protocol.AutoCompleteListProtocol;
 import kr.ac.ssu.ikatool.util.sql.entitiy.*;
+import kr.ac.ssu.ikatool.util.sql.entitiy.Rule;
+import kr.ac.ssu.ikatool.util.sql.entitiy.Value;
+
+import javax.xml.bind.ValidationEvent;
 
 /**
  * Created by NCri ON 2015. 12. 23..
@@ -1144,5 +1149,43 @@ public class SQLManager {
         } else {
             return false;
         }
+    }
+
+    public static ArrayList<kr.ac.ssu.ikatool.obj.Value> getAtomValue(int iAtomID){
+        ArrayList<kr.ac.ssu.ikatool.obj.Value> valueList = new ArrayList<>();
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConn();
+
+            System.out.println("Creating statement...");
+            stmt = conn.createStatement();
+
+
+            String sql = String.format("SELECT atom_value.value_id ,value.value_str FROM `atom_value` AS atom_value, value AS value WHERE atom_value.value_id = value.value_id AND atom_value.atom_id = %d", iAtomID);
+            rs = stmt.executeQuery(sql);
+
+            if(getResultSetSize(rs) == 0 ){
+                valueList.add(new kr.ac.ssu.ikatool.obj.Value(1, ""));
+                valueList.add(new kr.ac.ssu.ikatool.obj.Value(2, "H"));
+                valueList.add(new kr.ac.ssu.ikatool.obj.Value(3, "L"));
+                valueList.add(new kr.ac.ssu.ikatool.obj.Value(4, "Positive"));
+                valueList.add(new kr.ac.ssu.ikatool.obj.Value(5, "Negative"));
+                valueList.add(new kr.ac.ssu.ikatool.obj.Value(6, "Normal"));
+            }else {
+
+                while (rs.next()){
+                    valueList.add(new kr.ac.ssu.ikatool.obj.Value(rs.getInt("value_id"),rs.getString("value_str") ));
+                }
+            }
+
+
+        }catch (Exception e){
+            System.out.println(e.toString());
+        }
+
+        return valueList;
     }
 }
