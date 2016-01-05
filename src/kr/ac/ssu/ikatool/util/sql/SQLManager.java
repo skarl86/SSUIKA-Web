@@ -20,11 +20,17 @@ public class SQLManager {
     static final int CONSEQUENT = 2;
 
     static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-    static final String DB_URL = "jdbc:mysql://ailab.synology.me/medicaldb";
+    /*static final String DB_URL = "jdbc:mysql://ailab.synology.me/medicaldb";
 
     //  Database credentials
     static final String USER = "root";
     static final String PASS = "";
+*/
+    static final String DB_URL = "jdbc:mysql://183.101.198.97:3306/medicaldb";
+
+    //  Database credentials
+    static final String USER = "medical";
+    static final String PASS = "medical";
 
     private static Connection getConn() throws ClassNotFoundException, SQLException {
         //STEP 2: Register JDBC driver
@@ -339,7 +345,7 @@ public class SQLManager {
 
             //STEP 4: Execute a query
             System.out.println("Creating statement...");
-            String sql = "SELECT * FROM atom_default WHERE atom_name LIKE ?";
+            String sql = "SELECT * FROM atom_default WHERE atom_name LIKE ? LIMIT 100";
             System.out.println("Input Text = " + inputText);
 
             if(flag == AutoCompleteListProtocol.CONTAIN){
