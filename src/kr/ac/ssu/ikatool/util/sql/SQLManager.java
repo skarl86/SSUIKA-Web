@@ -260,7 +260,7 @@ public class SQLManager {
             rule = ruleMap.get(key);
 
             isAssociateAntecedent = rule.getAntecedentAtomIDs().containsAll(antAtomIDList);
-            isAssociateConsequent = rule.getAntecedentAtomIDs().containsAll(consAtomIDList);
+            isAssociateConsequent = rule.getConsequentAtomIDs().containsAll(consAtomIDList);
 
             if(isAssociateAntecedent | isAssociateConsequent) associateRuleSet.add(rule);
         }
