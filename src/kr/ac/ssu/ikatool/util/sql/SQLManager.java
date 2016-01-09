@@ -348,19 +348,7 @@ public class SQLManager {
             String sql = "SELECT * FROM atom_default WHERE atom_name LIKE ? LIMIT 100";
             System.out.println("Input Text = " + inputText);
 
-            if(flag == AutoCompleteListProtocol.CONTAIN){
-                // Contain
-                prestmt = conn.prepareStatement(sql);
-                prestmt.setString(1, "%" + inputText + "%");
-            }else if(flag == AutoCompleteListProtocol.SEQUENTAIL){
-                // Sequential
-                prestmt = conn.prepareStatement(sql);
-                prestmt.setString(1, inputText + "%");
-            }else{
-                // error
-                prestmt = conn.prepareStatement(sql);
-                prestmt.setString(1, "%" + inputText);
-            }
+            prestmt = getAutoCompleteFlag(conn,sql,inputText,flag);
 
             ResultSet rs = prestmt.executeQuery();
 
@@ -372,6 +360,20 @@ public class SQLManager {
 
                 list.add(new Atom(atomId, atomName, atomType));
             }
+
+            sql = "SELECT * FROM value WHERE value_str LIKE ? LIMIT 100";
+
+            prestmt = getAutoCompleteFlag(conn,sql,inputText,flag);
+
+            rs = prestmt.executeQuery();
+
+            while(rs.next()){
+                //Retrieve by column name
+                String valueName = rs.getString("value_str");
+
+                list.add(new Atom(-1, valueName, 0));
+            }
+
 
             //STEP 6: Clean-up environment
             rs.close();
@@ -401,7 +403,25 @@ public class SQLManager {
 
         return list;
     }
+    private static PreparedStatement getAutoCompleteFlag(Connection conn, String sql, String inputText, int flag) throws SQLException {
+        PreparedStatement prestmt = null;
+        if(flag == AutoCompleteListProtocol.CONTAIN){
+            // Contain
+            prestmt = conn.prepareStatement(sql);
+            prestmt.setString(1, "%" + inputText + "%");
+        }else if(flag == AutoCompleteListProtocol.SEQUENTAIL){
+            // Sequential
+            prestmt = conn.prepareStatement(sql);
+            prestmt.setString(1, inputText + "%");
+        }else{
+            // error
+            prestmt = conn.prepareStatement(sql);
+            prestmt.setString(1, "%" + inputText);
+        }
 
+        return prestmt;
+
+    }
     public static Rule getRuleList(String patientID, String opinionID){
         Connection conn = null;
         Statement stmt = null;
