@@ -742,7 +742,7 @@ public class SQLManager {
             String sql = "SELECT rule_id, ant_va_id FROM rule_ant";
             rs = stmt.executeQuery(sql);
             if (getResultSetSize(rs) == 0){
-                return null;
+                return new HashMap<>();
             }else {
 
                 while(rs.next()){
@@ -788,7 +788,7 @@ public class SQLManager {
             String sql = "SELECT rule_id, con_va_id FROM rule_con";
             rs = stmt.executeQuery(sql);
             if (getResultSetSize(rs) == 0){
-                return null;
+                return new HashMap<>();
             }else {
 
                 while(rs.next()){
