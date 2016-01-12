@@ -345,7 +345,7 @@ public class SQLManager {
 
             //STEP 4: Execute a query
             System.out.println("Creating statement...");
-            String sql = "SELECT * FROM atom_default WHERE atom_name LIKE ? LIMIT 100";
+            String sql = "SELECT * FROM atom_default WHERE atom_name LIKE ? ORDER BY atom_name ASC LIMIT 100";
             System.out.println("Input Text = " + inputText);
 
             prestmt = getAutoCompleteFlag(conn,sql,inputText,flag);
@@ -361,7 +361,7 @@ public class SQLManager {
                 list.add(new Atom(atomId, atomName, atomType));
             }
 
-            sql = "SELECT * FROM value WHERE value_str LIKE ? LIMIT 100";
+            sql = "SELECT * FROM value WHERE value_str LIKE ? ORDER BY value_str ASC LIMIT 100";
 
             prestmt = getAutoCompleteFlag(conn,sql,inputText,flag);
 
