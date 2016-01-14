@@ -82,6 +82,118 @@ public class SQLManager {
 
         return result;
     }
+    public static Value getValueByString(String str){
+        Integer id = -1;
+        Value value = null;
+        Connection conn = null;
+        PreparedStatement prestmt = null;
+
+        try{
+            //STEP 2: Register JDBC driver
+            //STEP 3: Open a connection
+            conn = getConn();
+
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+
+            String sql = "SELECT value_id FROM value WHERE value.value_str = ?";
+
+            prestmt = conn.prepareStatement(sql);
+            prestmt.setString(1, str);
+
+            ResultSet rs = prestmt.executeQuery();
+
+            while(rs.next()){
+                //Retrieve by column name
+                id = rs.getInt(1);
+                value = new Value(id, str);
+            }
+
+            //STEP 6: Clean-up environment
+            rs.close();
+            prestmt.close();
+            conn.close();
+        }catch(SQLException se){
+            //Handle errors for JDBC
+            se.printStackTrace();
+        }catch(Exception e){
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }finally{
+            //finally block used to close resources
+            try{
+                if(prestmt!=null)
+                    prestmt.close();
+            }catch(SQLException se2){
+            }// nothing we can do
+            try{
+                if(conn!=null)
+                    conn.close();
+            }catch(SQLException se){
+                se.printStackTrace();
+            }//end finally try
+        }//end try
+        System.out.println("Goodbye!");
+
+        return value;
+    }
+    public static Atom getAtomByName(String name){
+        Integer id = -1;
+        Atom atom = null;
+        Connection conn = null;
+        PreparedStatement prestmt = null;
+
+        try{
+            //STEP 2: Register JDBC driver
+            //STEP 3: Open a connection
+            conn = getConn();
+
+
+            //STEP 4: Execute a query
+            System.out.println("Creating statement...");
+
+            String sql = "select atom_id from atom_default where atom_name = ?";
+
+            prestmt = conn.prepareStatement(sql);
+            prestmt.setString(1, name);
+
+            ResultSet rs = prestmt.executeQuery();
+
+            while(rs.next()){
+                //Retrieve by column name
+                id = rs.getInt(1);
+                atom = new Atom(id, name);
+            }
+
+            //STEP 6: Clean-up environment
+            rs.close();
+            prestmt.close();
+            conn.close();
+        }catch(SQLException se){
+            //Handle errors for JDBC
+            se.printStackTrace();
+        }catch(Exception e){
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }finally{
+            //finally block used to close resources
+            try{
+                if(prestmt!=null)
+                    prestmt.close();
+            }catch(SQLException se2){
+            }// nothing we can do
+            try{
+                if(conn!=null)
+                    conn.close();
+            }catch(SQLException se){
+                se.printStackTrace();
+            }//end finally try
+        }//end try
+        System.out.println("Goodbye!");
+
+        return atom;
+    }
     public static Integer getAtomIDByName(String name){
         Integer id = -1;
 
@@ -137,9 +249,28 @@ public class SQLManager {
 
         return id;
     }
+    public static ArrayList<Atom> generateAtom(ArrayList<String> atomAndValueList){
+        ArrayList<Atom> atomList = new ArrayList<Atom>();
+        String[] nameAndValueStr = null;
+        Atom atom = null;
+        for(String nameAndValue : atomAndValueList){
+            if(nameAndValue.length() > 0){
+                nameAndValueStr = nameAndValue.split("_");
+
+                atom = getAtomByName(nameAndValueStr[0]);
+                atom.setValue(getValueByString(nameAndValueStr[1]));
+
+                atomList.add(atom);
+            }
+        }
+
+        return atomList;
+    }
     public static ArrayList<Integer> generateAtomIDList(ArrayList<String> atomNameList){
         ArrayList<Integer> idList = new ArrayList<Integer>();
-        for(String name : atomNameList){
+        String name = null;
+        for(String nameAndValue : atomNameList){
+            name = nameAndValue.split("_")[0];
             idList.add(getAtomIDByName(name));
         }
         return idList;
@@ -244,25 +375,53 @@ public class SQLManager {
         return ruleMap;
     }
     public static Set<Rule> getAssociateRule(ArrayList<String> antecedent, ArrayList<String> consequent){
+        Set<Rule> associateRuleSet = new HashSet<Rule>();
+
+        ArrayList<Atom> antAtom = generateAtom(antecedent);
+        ArrayList<Atom> consAtom = generateAtom(consequent);
+
         ArrayList<Integer> antAtomIDList = generateAtomIDList(antecedent);
         ArrayList<Integer> consAtomIDList = generateAtomIDList(consequent);
 
         HashMap<Integer, Rule> ruleMap = generateRuleMap();
 
-        Set<Rule> associateRuleSet = new HashSet<Rule>();
-
         boolean isAssociateAntecedent = false;
         boolean isAssociateConsequent = false;
+
         Rule rule = null;
+        int matchCount = 0;
 
         for(Integer key : ruleMap.keySet()){
 
             rule = ruleMap.get(key);
 
             isAssociateAntecedent = rule.getAntecedentAtomIDs().containsAll(antAtomIDList);
+            if(isAssociateAntecedent){
+                for(Atom userAtom : antAtom){
+                    for(Atom atom : rule.getAntecedents()){
+                        if(atom.isEqaul(userAtom)) matchCount++;
+                    }
+                }
+            }
+
+            isAssociateAntecedent = matchCount == antAtom.size();
+            matchCount = 0;
+
             isAssociateConsequent = rule.getConsequentAtomIDs().containsAll(consAtomIDList);
 
-            if(isAssociateAntecedent | isAssociateConsequent) associateRuleSet.add(rule);
+            if(isAssociateConsequent){
+                for(Atom userAtom : consAtom){
+                    for(Atom atom : rule.getConseqeunts()){
+                        if(atom.isEqaul(userAtom)) matchCount++;
+                    }
+                }
+            }
+
+            isAssociateConsequent = matchCount == antAtom.size();
+
+            if(isAssociateAntecedent | isAssociateConsequent) {
+                associateRuleSet.add(rule);
+            }
         }
 
         return associateRuleSet;

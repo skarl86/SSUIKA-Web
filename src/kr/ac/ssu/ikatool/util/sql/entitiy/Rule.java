@@ -47,6 +47,13 @@ public class Rule {
         }
         return ids;
     }
+    public Atom getAntecedentByID(Integer id){
+        for(Atom atom : antecedents){
+            if(atom.getId() == id)
+                return atom;
+        }
+        return null;
+    }
     public ArrayList<Integer> getAntecedentAtomIDs(){
         return generateAtomIDs(antecedents);
     }

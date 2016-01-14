@@ -26,6 +26,10 @@ public class Atom {
         this(id, name, type, "");
     }
 
+    public void setValue(Value _value) {
+        this._value = _value;
+    }
+
     public Atom(Integer id, String name, Integer type, String value) {
         this.id = id;
         this.name = name;
@@ -53,8 +57,9 @@ public class Atom {
     public String getValue() { return value; }
 
     public Integer getValueID() { return _value.getId(); }
+    public String getValueStr() { return _value.getName(); }
 
     public boolean isEqaul(Atom atom){
-        return atom.getId() == this.getId();
+        return atom.getId().equals(this.getId());
     }
 }

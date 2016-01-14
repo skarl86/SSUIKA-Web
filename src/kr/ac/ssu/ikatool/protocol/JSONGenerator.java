@@ -16,7 +16,7 @@ public class JSONGenerator {
         for(Atom atom : atoms){
             atomMap = new JSONObject();
             atomMap.put("name", atom.getName());
-            atomMap.put("value", atom.getValue());
+            atomMap.put("value", atom.getValueStr());
             result.add(atomMap);
         }
 
