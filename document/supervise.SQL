@@ -3,6 +3,8 @@ load data infile 'C:\\parsed_Atom2.txt' into table atom_default ( atom_name, ato
 load data infile 'C:\\parsed_Atom2.txt' into table atom_default ( atom_name);
 
 load data infile 'C:\\parsed_Atom2.txt' into table atom_default ( atom_name,conceptid, typeid);
+load data infile 'C:\\parsed_Atom2.txt' into table atom_default ( conceptid,typeid,atom_name);
+
 
 
 delete from rule_ant where rule_id > 2;
