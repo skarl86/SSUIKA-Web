@@ -52,6 +52,7 @@ public class SQLManager {
         int atomID = -1;
         int atomType = -1;
         String atomName = null;
+        int valueID = -1;
         String valueString = null;
 
         Rule rule = null;
@@ -64,6 +65,7 @@ public class SQLManager {
             createdDate = rs.getString(5);
             modifiedDate = rs.getString(6);
             atomID = rs.getInt(7);
+            valueID = rs.getInt(8);
             atomName = rs.getString(9);
             atomType = rs.getInt(10);
             valueString = rs.getString(11);
@@ -74,9 +76,9 @@ public class SQLManager {
                 rule = new Rule(ruleID, author, createdDate, modifiedDate);
 
             if(antOrCon == ANTCEDENT)
-                rule.addAntecedents(new Atom(atomID, atomName,atomType, valueString));
+                rule.addAntecedents(new Atom(atomID, atomName,atomType, new Value(valueID, valueString)));
             else if(antOrCon == CONSEQUENT)
-                rule.addCoseqeunts(new Atom(atomID, atomName,atomType, valueString));
+                rule.addCoseqeunts(new Atom(atomID, atomName,atomType, new Value(valueID, valueString)));
             result.addRule(rule);
         }
 
