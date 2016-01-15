@@ -86,6 +86,7 @@ public class SQLManager {
     }
     public static Value getValueByString(String str){
         Integer id = -1;
+        String valueStr = null;
         Value value = null;
         Connection conn = null;
         PreparedStatement prestmt = null;
@@ -99,7 +100,7 @@ public class SQLManager {
             //STEP 4: Execute a query
             System.out.println("Creating statement...");
 
-            String sql = "SELECT value_id FROM value WHERE value.value_str = ?";
+            String sql = "SELECT value_id, value_str FROM value WHERE value.value_str = ?";
 
             prestmt = conn.prepareStatement(sql);
             prestmt.setString(1, str);
@@ -109,7 +110,8 @@ public class SQLManager {
             while(rs.next()){
                 //Retrieve by column name
                 id = rs.getInt(1);
-                value = new Value(id, str);
+                valueStr = rs.getString(2);
+                value = new Value(id, valueStr);
             }
 
             //STEP 6: Clean-up environment
@@ -260,9 +262,10 @@ public class SQLManager {
                 nameAndValueStr = nameAndValue.split("_");
 
                 atom = getAtomByName(nameAndValueStr[0]);
-                atom.setValue(getValueByString(nameAndValueStr[1]));
-
-                atomList.add(atom);
+                if(atom != null){
+                    atom.setValue(getValueByString(nameAndValueStr[1]));
+                    atomList.add(atom);
+                }
             }
         }
 
@@ -394,7 +397,6 @@ public class SQLManager {
         int matchCount = 0;
 
         for(Integer key : ruleMap.keySet()){
-
             rule = ruleMap.get(key);
 
             isAssociateAntecedent = rule.getAntecedentAtomIDs().containsAll(antAtomIDList);
@@ -406,7 +408,7 @@ public class SQLManager {
                 }
             }
 
-            isAssociateAntecedent = matchCount == antAtom.size();
+            isAssociateAntecedent = matchCount == antAtom.size() && antAtom.size() != 0;
             matchCount = 0;
 
             isAssociateConsequent = rule.getConsequentAtomIDs().containsAll(consAtomIDList);
@@ -419,9 +421,13 @@ public class SQLManager {
                 }
             }
 
-            isAssociateConsequent = matchCount == antAtom.size();
+            isAssociateConsequent = matchCount == consAtom.size() && consAtom.size() != 0;
 
-            if(isAssociateAntecedent | isAssociateConsequent) {
+            // Conseqeunt가 없더라도 Antecedent에 만족하는 Rule이 나와야 한다.
+            if(consAtomIDList.get(0) == -1) isAssociateConsequent = true;
+            if(antAtomIDList.get(0) == -1) isAssociateAntecedent = true;
+
+            if(isAssociateAntecedent && isAssociateConsequent) {
                 associateRuleSet.add(rule);
             }
         }

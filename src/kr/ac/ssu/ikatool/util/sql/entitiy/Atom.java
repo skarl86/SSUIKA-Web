@@ -60,6 +60,6 @@ public class Atom {
     public String getValueStr() { return _value.getName(); }
 
     public boolean isEqaul(Atom atom){
-        return atom.getId().equals(this.getId());
+        return atom.getId().equals(this.getId()) && atom.getValueStr().equals(this.getValueStr());
     }
 }
