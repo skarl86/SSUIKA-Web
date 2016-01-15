@@ -1069,7 +1069,7 @@ public class SQLManager {
             stmt = conn.createStatement();
 
 
-            String sql = String.format("SELECT * FROM atom_default WHERE atom_name = \'%s\'", atomName);
+            String sql = String.format("SELECT * FROM atom_default WHERE atom_name_search = \'%s\'", atomName.toLowerCase());
             rs = stmt.executeQuery(sql);
             if (getResultSetSize(rs) > 0){
                 return true;
@@ -1095,8 +1095,7 @@ public class SQLManager {
             System.out.println("Creating statement...");
             stmt = conn.createStatement();
 
-
-            String sql = String.format("SELECT atom_id FROM atom_default WHERE atom_name = \'%s\'", atomName);
+            String sql = String.format("SELECT atom_id FROM atom_default WHERE atom_name_search = \'%s\'", atomName.toLowerCase());
             rs = stmt.executeQuery(sql);
             if (getResultSetSize(rs) > 0){
                 rs.next();
@@ -1126,7 +1125,7 @@ public class SQLManager {
             stmt = conn.createStatement();
 
 
-            String sql = String.format("SELECT value_str FROM value WHERE value_str = \'%s\'", valueName);
+            String sql = String.format("SELECT value_str FROM value WHERE value_str_search = \'%s\'", valueName.toLowerCase());
             rs = stmt.executeQuery(sql);
             if (getResultSetSize(rs) > 0){
                 return true;
@@ -1152,7 +1151,7 @@ public class SQLManager {
             System.out.println("Creating statement...");
             stmt = conn.createStatement();
 
-            String sql = String.format("SELECT value_id FROM value WHERE value_str = \'%s\'", valueName);
+            String sql = String.format("SELECT value_id FROM value WHERE value_str_search = \'%s\'", valueName.toLowerCase());
             rs = stmt.executeQuery(sql);
             if (getResultSetSize(rs) > 0){
                 rs.next();
@@ -1181,9 +1180,10 @@ public class SQLManager {
             System.out.println("Creating statement...");
             stmt = conn.createStatement();
 
-            preparedStatement = conn.prepareStatement("INSERT INTO atom_default(atom_name, atom_type) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
+            preparedStatement = conn.prepareStatement("INSERT INTO atom_default(atom_name, atom_type,atom_name_search) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, atomName);
             preparedStatement.setInt(2, atomType);
+            preparedStatement.setString(3, atomName.toLowerCase());
 
             if (preparedStatement.executeUpdate() > 0) {
                 //good
@@ -1212,8 +1212,9 @@ public class SQLManager {
             System.out.println("Creating statement...");
             stmt = conn.createStatement();
 
-            preparedStatement = conn.prepareStatement("INSERT INTO value( value_str) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+            preparedStatement = conn.prepareStatement("INSERT INTO value( value_str, value_str_search) VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, valueName);
+            preparedStatement.setString(2, valueName.toLowerCase());
 
             if (preparedStatement.executeUpdate() > 0) {
                 ResultSet keys = preparedStatement.getGeneratedKeys();
